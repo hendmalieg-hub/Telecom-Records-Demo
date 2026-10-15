@@ -13,7 +13,7 @@ import NotFound from '@/pages/not-found';
 import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 
 type Subscriber = {
-  id: string; phoneNumber: string; status: string; plan: string; region: string;
+  id: string; callerLabel: string; phoneNumber: string; status: string; plan: string; region: string;
   activatedAt: string; imei: string; lastSeenAt: string;
 };
 type CallRecord = {
@@ -25,11 +25,11 @@ type Tower = { id: string; name: string; area: string; latitude: number; longitu
 type Device = { imei: string; model: string; manufacturer: string; phoneNumber: string };
 
 const subscribers: Subscriber[] = [
-  { id: 'sub-107', phoneNumber: '+1-202-555-0107', status: 'Active', plan: 'Civic Connect · 12 GB', region: 'Washington, DC', activatedAt: '2022-08-14', imei: '359881074261508', lastSeenAt: '2025-03-18T14:42:00Z' },
-  { id: 'sub-114', phoneNumber: '+1-202-555-0114', status: 'Active', plan: 'Civic Connect · 8 GB', region: 'Washington, DC', activatedAt: '2023-02-03', imei: '356938035643809', lastSeenAt: '2025-03-18T13:17:00Z' },
-  { id: 'sub-126', phoneNumber: '+1-202-555-0126', status: 'Active', plan: 'Metro Flex · 20 GB', region: 'Washington, DC', activatedAt: '2021-11-29', imei: '351756051523999', lastSeenAt: '2025-03-18T11:08:00Z' },
-  { id: 'sub-139', phoneNumber: '+1-202-555-0139', status: 'Suspended', plan: 'Civic Connect · 4 GB', region: 'Washington, DC', activatedAt: '2024-05-07', imei: '353918061092817', lastSeenAt: '2025-03-17T20:31:00Z' },
-  { id: 'sub-142', phoneNumber: '+1-202-555-0142', status: 'Active', plan: 'Metro Flex · 20 GB', region: 'Washington, DC', activatedAt: '2020-09-21', imei: '354628104773651', lastSeenAt: '2025-03-18T09:58:00Z' },
+  { id: 'sub-107', callerLabel: 'Demo caller 0107', phoneNumber: '+1-202-555-0107', status: 'Active', plan: 'Civic Connect · 12 GB', region: 'Washington, DC', activatedAt: '2022-08-14', imei: '359881074261508', lastSeenAt: '2025-03-18T14:42:00Z' },
+  { id: 'sub-114', callerLabel: 'Demo caller 0114', phoneNumber: '+1-202-555-0114', status: 'Active', plan: 'Civic Connect · 8 GB', region: 'Washington, DC', activatedAt: '2023-02-03', imei: '356938035643809', lastSeenAt: '2025-03-18T13:17:00Z' },
+  { id: 'sub-126', callerLabel: 'Demo caller 0126', phoneNumber: '+1-202-555-0126', status: 'Active', plan: 'Metro Flex · 20 GB', region: 'Washington, DC', activatedAt: '2021-11-29', imei: '351756051523999', lastSeenAt: '2025-03-18T11:08:00Z' },
+  { id: 'sub-139', callerLabel: 'Demo caller 0139', phoneNumber: '+1-202-555-0139', status: 'Suspended', plan: 'Civic Connect · 4 GB', region: 'Washington, DC', activatedAt: '2024-05-07', imei: '353918061092817', lastSeenAt: '2025-03-17T20:31:00Z' },
+  { id: 'sub-142', callerLabel: 'Demo caller 0142', phoneNumber: '+1-202-555-0142', status: 'Active', plan: 'Metro Flex · 20 GB', region: 'Washington, DC', activatedAt: '2020-09-21', imei: '354628104773651', lastSeenAt: '2025-03-18T09:58:00Z' },
 ];
 
 const towers: Tower[] = [
@@ -184,16 +184,16 @@ function App() {
           {activeView === 'trace' ? (
             <>
               <div className="page-heading">
-                <div><div className="eyebrow">Telecom records · explore</div><h1>Number trace</h1><p>Review activity, connected numbers, and network touchpoints.</p></div>
+                <div><div className="eyebrow">Telecom records · explore</div><h1>Caller information</h1><p>Search a phone number to review its sample caller profile, activity, and network touchpoints.</p></div>
                 <div className="date-stamp">SAMPLE WINDOW<strong>March 2025 · Washington, DC</strong></div>
               </div>
-              <section className="search-panel" aria-label="Trace a phone number">
-                <div className="search-panel-head"><div className="section-label"><Search size={15} /> Look up a number</div><span className="micro-label">Phone number</span></div>
+              <section className="search-panel" aria-label="Search caller information by phone number">
+                <div className="search-panel-head"><div className="section-label"><Search size={15} /> Search caller information</div><span className="micro-label">Phone number</span></div>
                 <div className="search-grid">
-                  <div className="field"><label htmlFor="trace-phone">NUMBER TO TRACE</label><div className="input-wrap"><Search size={15} /><input data-testid="input-trace-phone" id="trace-phone" className="with-icon" value={phoneInput} onChange={(event) => setPhoneInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') runTrace(); }} placeholder="+1-202-555-0107" /></div></div>
+                  <div className="field"><label htmlFor="trace-phone">PHONE NUMBER TO SEARCH</label><div className="input-wrap"><Search size={15} /><input data-testid="input-trace-phone" id="trace-phone" className="with-icon" value={phoneInput} onChange={(event) => setPhoneInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') runTrace(); }} placeholder="+1-202-555-0107" /></div></div>
                   <div className="field"><label htmlFor="from-date">FROM</label><input data-testid="input-date-from" id="from-date" type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} /></div>
                   <div className="field"><label htmlFor="to-date">TO</label><input data-testid="input-date-to" id="to-date" type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} /></div>
-                  <button data-testid="button-run-trace" className="button button-primary" onClick={() => runTrace()}><Search size={15} /> Trace number</button>
+                  <button data-testid="button-run-trace" className="button button-primary" onClick={() => runTrace()}><Search size={15} /> Find caller</button>
                 </div>
                 <div className="sample-hint"><span>Try a sample:</span>{subscribers.slice(0, 4).map((person) => <button key={person.id} className="sample-chip" data-testid={`sample-number-${person.id}`} onClick={() => runTrace(person.phoneNumber)}>{person.phoneNumber}</button>)}</div>
                 {searchMessage && <div className="status-line" role="status"><AlertCircle size={14} />{searchMessage}</div>}
@@ -201,11 +201,11 @@ function App() {
               {subscriber ? (
                 <>
                   <div className="overview-grid">
-                    <section className="panel subscriber-panel" aria-label="Subscriber profile">
+                    <section className="panel subscriber-panel" aria-label="Caller profile">
                       <div className="panel-topline" />
                       <div className="panel-inner">
                         <div className="subscriber-head">
-                          <div className="identity"><div className="identity-icon"><UserRound size={21} /></div><div><h2 className="number-title" data-testid="text-subscriber-number">{subscriber.phoneNumber}</h2><div className="subscriber-meta">{subscriber.region} <span style={{ margin: '0 5px' }}>·</span> Subscriber ID {subscriber.id.toUpperCase()}</div></div></div>
+                          <div className="identity"><div className="identity-icon"><UserRound size={21} /></div><div><h2 className="number-title" data-testid="text-caller-name">{subscriber.callerLabel}</h2><div className="subscriber-meta"><span data-testid="text-subscriber-number">{subscriber.phoneNumber}</span> <span style={{ margin: '0 5px' }}>·</span> {subscriber.region} <span style={{ margin: '0 5px' }}>·</span> Subscriber ID {subscriber.id.toUpperCase()}</div></div></div>
                           <span className="active-badge"><span className="signal-dot" />{subscriber.status}</span>
                         </div>
                         <div className="subscriber-facts">
