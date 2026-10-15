@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Signal Desk"
+description = "A no-login telecom records demo using synthetic sample data only. Explore number details, date-filtered call history, tower connections, IMEI-to-number lookups, clickable call-log records, and CSV exports."
+version = "1.0.0"
+id = "artifacts/signal-desk"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18648
+
+[services.development]
+run = "pnpm --filter @workspace/signal-desk run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/signal-desk", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/signal-desk/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18648"
+BASE_PATH = "/"
