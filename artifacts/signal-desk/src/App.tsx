@@ -92,7 +92,7 @@ function downloadCsv(filename: string, records: CallRecord[]) {
 }
 
 function App() {
-  const [activeView, setActiveView] = useState<'trace' | 'imei'>('trace');
+  const [activeView, setActiveView] = useState<'trace' | 'caller' | 'imei'>('trace');
   const [phoneInput, setPhoneInput] = useState(defaultPhone);
   const [selectedPhone, setSelectedPhone] = useState(defaultPhone);
   const [fromDate, setFromDate] = useState(defaultFrom);
@@ -147,6 +147,21 @@ function App() {
     setSearchMessage('');
     setActiveView('trace');
   }
+  function runCallerSearch(value = phoneInput) {
+    const normalized = formatPhone(value);
+    const match = subscribers.find((person) => formatPhone(person.phoneNumber) === normalized);
+    if (!match) {
+      setSearchMessage('No caller information in this synthetic sample matches that number.');
+      setSelectedPhone('');
+      return;
+    }
+    setPhoneInput(match.phoneNumber);
+    setSelectedPhone(match.phoneNumber);
+    setSelectedTower(null);
+    setExpandedNumber(null);
+    setSearchMessage('');
+    setActiveView('caller');
+  }
   function openDeviceLookup(imei: string) {
     setImeiInput(imei);
     setActiveView('imei');
@@ -168,6 +183,7 @@ function App() {
         <nav>
           <div className="nav-caption">Workspace</div>
           <button data-testid="nav-number-trace" className={`nav-item ${activeView === 'trace' ? 'active' : ''}`} onClick={() => setActiveView('trace')}><FileSearch size={17} /><span>Number trace</span></button>
+          <button data-testid="nav-caller-info" className={`nav-item ${activeView === 'caller' ? 'active' : ''}`} onClick={() => { setActiveView('caller'); setSearchMessage(''); if (selectedPhone) setPhoneInput(selectedPhone); }}><UserRound size={17} /><span>Caller information</span></button>
           <button data-testid="nav-imei-lookup" className={`nav-item ${activeView === 'imei' ? 'active' : ''}`} onClick={() => setActiveView('imei')}><Fingerprint size={17} /><span>IMEI lookup</span></button>
           <button data-testid="nav-tower-map" className="nav-item" onClick={() => { setActiveView('trace'); document.getElementById('tower-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}><RadioTower size={17} /><span>Connected towers</span></button>
         </nav>
@@ -177,23 +193,23 @@ function App() {
       </aside>
       <div className="main-area">
         <header className="topbar">
-          <div className="crumb"><span>Workbench</span><ChevronRight size={13} /><strong>{activeView === 'trace' ? 'Number trace' : 'IMEI lookup'}</strong></div>
+          <div className="crumb"><span>Workbench</span><ChevronRight size={13} /><strong>{activeView === 'trace' ? 'Number trace' : activeView === 'caller' ? 'Caller information' : 'IMEI lookup'}</strong></div>
           <div className="top-meta"><span>RECORDS SANDBOX</span><span className="top-pill"><span className="signal-dot" /> Synthetic data only</span><button aria-label="About this demo" title="About this demo" className="small-btn" style={{ padding: '6px' }} onClick={() => setShowHelp((v) => !v)}><CircleHelp size={14} /></button></div>
         </header>
         <main className="content">
           {activeView === 'trace' ? (
             <>
               <div className="page-heading">
-                <div><div className="eyebrow">Telecom records · explore</div><h1>Caller information</h1><p>Search a phone number to review its sample caller profile, activity, and network touchpoints.</p></div>
+                <div><div className="eyebrow">Telecom records · explore</div><h1>Number trace</h1><p>Review activity, connected numbers, and network touchpoints.</p></div>
                 <div className="date-stamp">SAMPLE WINDOW<strong>March 2025 · Washington, DC</strong></div>
               </div>
-              <section className="search-panel" aria-label="Search caller information by phone number">
-                <div className="search-panel-head"><div className="section-label"><Search size={15} /> Search caller information</div><span className="micro-label">Phone number</span></div>
+              <section className="search-panel" aria-label="Trace a phone number">
+                <div className="search-panel-head"><div className="section-label"><Search size={15} /> Look up a number</div><span className="micro-label">Phone number</span></div>
                 <div className="search-grid">
-                  <div className="field"><label htmlFor="trace-phone">PHONE NUMBER TO SEARCH</label><div className="input-wrap"><Search size={15} /><input data-testid="input-trace-phone" id="trace-phone" className="with-icon" value={phoneInput} onChange={(event) => setPhoneInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') runTrace(); }} placeholder="+1-202-555-0107" /></div></div>
+                  <div className="field"><label htmlFor="trace-phone">NUMBER TO TRACE</label><div className="input-wrap"><Search size={15} /><input data-testid="input-trace-phone" id="trace-phone" className="with-icon" value={phoneInput} onChange={(event) => setPhoneInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') runTrace(); }} placeholder="+1-202-555-0107" /></div></div>
                   <div className="field"><label htmlFor="from-date">FROM</label><input data-testid="input-date-from" id="from-date" type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} /></div>
                   <div className="field"><label htmlFor="to-date">TO</label><input data-testid="input-date-to" id="to-date" type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} /></div>
-                  <button data-testid="button-run-trace" className="button button-primary" onClick={() => runTrace()}><Search size={15} /> Find caller</button>
+                  <button data-testid="button-run-trace" className="button button-primary" onClick={() => runTrace()}><Search size={15} /> Trace number</button>
                 </div>
                 <div className="sample-hint"><span>Try a sample:</span>{subscribers.slice(0, 4).map((person) => <button key={person.id} className="sample-chip" data-testid={`sample-number-${person.id}`} onClick={() => runTrace(person.phoneNumber)}>{person.phoneNumber}</button>)}</div>
                 {searchMessage && <div className="status-line" role="status"><AlertCircle size={14} />{searchMessage}</div>}
@@ -201,7 +217,7 @@ function App() {
               {subscriber ? (
                 <>
                   <div className="overview-grid">
-                    <section className="panel subscriber-panel" aria-label="Caller profile">
+                    <section className="panel subscriber-panel" aria-label="Subscriber profile">
                       <div className="panel-topline" />
                       <div className="panel-inner">
                         <div className="subscriber-head">
@@ -310,7 +326,7 @@ function App() {
               ) : <div className="empty-state"><FileSearch className="empty-icon" size={23} /><strong>Number not in sample</strong><p>Use one of the listed sample numbers above. This workbench searches local synthetic records only.</p></div>}
               <div className="disclaimer"><ShieldCheck size={15} /><div><strong>Synthetic records for demonstration.</strong> All numbers are reserved fictional 202-555-01xx examples. Towers, subscriber profiles, device identifiers, and event logs are invented; this tool is not connected to a carrier network.</div></div>
             </>
-          ) : (
+          ) : activeView === 'imei' ? (
             <div className="lookup-view">
               <div className="page-heading"><div><div className="eyebrow">Device association · explore</div><h1>IMEI lookup</h1><p>Find a synthetic handset record and pivot back to its associated line.</p></div><div className="date-stamp">LOOKUP MODE<strong>Local sample index</strong></div></div>
               <section className="lookup-hero">
@@ -325,6 +341,40 @@ function App() {
                 <button data-testid="button-pivot-to-number" className="button button-primary" style={{ marginTop: 17 }} onClick={() => { runTrace(queriedDevice.phoneNumber); setActiveView('trace'); }}>Trace associated number <ArrowRight size={14} /></button>
               </section> : <div className="empty-state lookup-results"><Fingerprint className="empty-icon" size={23} /><strong>{imeiInput.length ? 'No device match' : 'Ready for a device identifier'}</strong><p>{imeiInput.length ? 'That identifier is not in this fictional sample index. Try one of the sample IMEIs above.' : 'Enter a 15-digit synthetic IMEI or select one of the samples to begin.'}</p></div>}
               <div className="disclaimer"><ShieldCheck size={15} /><div><strong>Local synthetic sample index.</strong> These identifiers and handset associations are invented for this demo. No device registry or external service is queried.</div></div>
+            </div>
+          ) : (
+            <div className="lookup-view">
+              <div className="page-heading">
+                <div><div className="eyebrow">Subscriber records · search</div><h1>Caller information</h1><p>Search by phone number to view a sample caller profile and line details.</p></div>
+                <div className="date-stamp">DIRECTORY LOOKUP<strong>Local sample index</strong></div>
+              </div>
+              <section className="lookup-hero" aria-label="Search caller information">
+                <h2>Search by phone number</h2>
+                <p>Enter a reserved demo number to find its synthetic caller profile.</p>
+                <div className="lookup-form">
+                  <div className="field"><label htmlFor="caller-phone-search">PHONE NUMBER</label><div className="input-wrap"><UserRound size={15} /><input data-testid="input-caller-phone" id="caller-phone-search" className="with-icon" value={phoneInput} onChange={(event) => setPhoneInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') runCallerSearch(); }} placeholder="+1-202-555-0107" /></div></div>
+                  <button data-testid="button-search-caller" className="button button-primary" onClick={() => runCallerSearch()}><Search size={15} /> Search caller</button>
+                </div>
+                <div className="sample-hint"><span>Try a sample:</span>{subscribers.map((person) => <button key={person.id} className="sample-chip" data-testid={`caller-sample-${person.id}`} onClick={() => runCallerSearch(person.phoneNumber)}>{person.phoneNumber}</button>)}</div>
+                {searchMessage && <div className="status-line" role="status"><AlertCircle size={14} />{searchMessage}</div>}
+              </section>
+              <div className="section-header"><div className="section-title"><div><h2>Caller profile</h2><div className="section-sub">Matched against the local synthetic sample index</div></div></div></div>
+              {subscriber ? <section className="pivot-card lookup-results" data-testid="card-caller-result">
+                <div className="subscriber-head">
+                  <div className="identity"><div className="identity-icon"><UserRound size={21} /></div><div><h2 className="number-title" data-testid="text-caller-profile-name">{subscriber.callerLabel}</h2><div className="subscriber-meta">Synthetic caller label · {subscriber.region}</div></div></div>
+                  <span className="active-badge"><span className="signal-dot" />{subscriber.status}</span>
+                </div>
+                <div className="pivot-list">
+                  <div className="pivot-item"><span>Phone number</span><span data-testid="text-caller-profile-phone">{subscriber.phoneNumber}</span></div>
+                  <div className="pivot-item"><span>Subscriber ID</span><span>{subscriber.id.toUpperCase()}</span></div>
+                  <div className="pivot-item"><span>Service plan</span><span>{subscriber.plan}</span></div>
+                  <div className="pivot-item"><span>Activated</span><span>{new Date(`${subscriber.activatedAt}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
+                  <div className="pivot-item"><span>Device IMEI</span><button className="tower-link" data-testid="button-caller-imei" onClick={() => openDeviceLookup(subscriber.imei)}>{subscriber.imei}</button></div>
+                  <div className="pivot-item"><span>Last seen</span><span>{displayDate(subscriber.lastSeenAt)}</span></div>
+                </div>
+                <button data-testid="button-caller-open-trace" className="button button-primary" style={{ marginTop: 17 }} onClick={() => runTrace(subscriber.phoneNumber)}>Open number trace <ArrowRight size={14} /></button>
+              </section> : <div className="empty-state lookup-results"><UserRound className="empty-icon" size={23} /><strong>{phoneInput ? 'No caller match' : 'Search for a caller'}</strong><p>{phoneInput ? 'That phone number is not in this fictional sample index. Try one of the reserved sample numbers above.' : 'Enter a synthetic phone number or choose a sample number to begin.'}</p></div>}
+              <div className="disclaimer"><ShieldCheck size={15} /><div><strong>Synthetic caller data for demonstration.</strong> Caller labels and line details are invented; this search does not identify real people or connect to a carrier database.</div></div>
             </div>
           )}
         </main>
